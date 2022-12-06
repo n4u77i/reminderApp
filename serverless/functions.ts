@@ -2,9 +2,9 @@ import type { AWS } from '@serverless/typescript';
 
 const functions: AWS["functions"] = {
     // Any function name
-    setUrl: {
+    setReminder: {
         // Lambda function path
-        handler: 'src/functions/setUrl/index.handler',
+        handler: 'src/functions/setReminder/index.handler',
 
         // Event to trigger lambda function
         events: [
