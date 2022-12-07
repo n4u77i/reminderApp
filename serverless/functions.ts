@@ -17,16 +17,32 @@ const functions: AWS["functions"] = {
         ]
     },
 
-    getUrl: {
+    sendReminder: {
         // Lambda function path
-        handler: 'src/functions/getUrl/index.handler',
+        handler: 'src/functions/sendReminder/index.handler',
 
         // Event to trigger lambda function
         events: [
             {
-                httpApi: {
-                    path: '/{code}',                                // Code is a variable passed in the path of url i.e https://some-url/646353
-                    method: 'get'
+                // Stream input event type
+                stream: {
+                    type: 'dynamodb',
+                    
+                    // Setting ARN for dynamoDB dynamically by getting attribute of dynamodb <reminderTable>
+                    arn : {
+                        // Getting StreamArn attribute from <reminderTabe> defined in dynamoResources.ts
+                        'Fn::GetAtt': [
+                            'reminderTable',
+                            'StreamArn',
+                        ]
+                    },
+
+                    // Lambda will only get triggered when the REMOVE event will happen (record will be deleted)
+                    filterPatterns: [
+                        {
+                            eventName: ['REMOVE']
+                        }
+                    ]
                 }
             }
         ]

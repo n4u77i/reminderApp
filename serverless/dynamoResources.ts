@@ -29,6 +29,19 @@ const dynamoResources: AWS['resources']['Resources'] = {
             // Defining the type of billing we want to use
             BillingMode: 'PAY_PER_REQUEST',
 
+            // Need to setup stream so whenever data changes (delete in our case), this prop will stream data to lambda (send data to lambda)
+            StreamSpecification: {
+                /**
+                 * StreamViewTypes determines what kind of data we want to send in the stream to view
+                 * There are four types of StreamViewTypes
+                 * KEYS_ONLY - Only the key attributes of updated object
+                 * NEW_IMAGE - The updated or newly created object
+                 * OLD_IMAGE - The deleted or before the object was updated
+                 * NEW_AND_OLD_IMAGES - Both before and after the object was updated 
+                 */
+                StreamViewType: 'OLD_IMAGE'
+            },
+
             /**
              * Adding a TTL, which will delete the record at the specified TTL
              * A dynamo stream will be then added which will trigger the lambda to get the deleted record everytime it is deleted
