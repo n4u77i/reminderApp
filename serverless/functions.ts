@@ -17,6 +17,21 @@ const functions: AWS["functions"] = {
         ]
     },
 
+    getReminders: {
+        // Lambda function path
+        handler: 'src/functions/getReminders/index.handler',
+
+        // Event to trigger lambda function
+        events: [
+            {
+                httpApi: {
+                    path: '/{userId}',
+                    method: 'get'
+                }
+            }
+        ]
+    },
+
     sendReminder: {
         // Lambda function path
         handler: 'src/functions/sendReminder/index.handler',
