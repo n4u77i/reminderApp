@@ -1,6 +1,11 @@
 import { DynamoDBStreamEvent } from "aws-lambda";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { AttributeValue } from "@aws-sdk/client-dynamodb";
+import { SESClient, SendEmailCommand, SendEmailCommandInput } from "@aws-sdk/client-ses";
+import { SNSClient, PublishCommand, PublishCommandInput } from "@aws-sdk/client-sns";
+
+const sesClient = new SESClient({})
+const snsClient = new SNSClient({})
 
 export const handler = async (event: DynamoDBStreamEvent) => {
     try {
@@ -16,13 +21,11 @@ export const handler = async (event: DynamoDBStreamEvent) => {
             const { email, phoneNumber, reminder } = data
 
             if (phoneNumber) {
-                // TODO: Implement with SNS
-                // await sendSMS({ phoneNumber, reminder })
+                await sendSMS({ phoneNumber, reminder })
             }
 
             if (email) {
-                // TODO: Implement with SES
-                // await sendEmail({ email, reminder })
+                await sendEmail({ email, reminder })
             }
         })
 
@@ -30,4 +33,58 @@ export const handler = async (event: DynamoDBStreamEvent) => {
     } catch (error) {
         console.log('Error', error)
     }
+}
+
+const sendEmail = async ({
+    email,
+    reminder
+}: {
+    email: string,
+    reminder: string
+}) => {
+    // SendEmailCommandInput will prepare the input data to send email from SES
+    const params: SendEmailCommandInput = {
+        Source: 'batch17.94@gmail.com',
+        Destination: {
+            ToAddresses: [email]
+        },
+        Message: {
+            Subject: {
+                Charset: 'UTF-8',
+                Data: 'Your Reminder!'
+            },
+            Body: {
+                Text: {
+                    Charset: 'UTF-8',
+                    Data: reminder
+                }
+            }
+        }
+    }
+
+    // SendEmailCommand will create the command for sending email
+    const command = new SendEmailCommand(params)
+    const response = await sesClient.send(command)
+
+    return response.MessageId
+}
+
+const sendSMS = async ({
+    phoneNumber,
+    reminder
+}: {
+    phoneNumber: string,
+    reminder: string
+}) => {
+    // PublishCommandInput will prepare the input data to send SMS from SNS
+    const params: PublishCommandInput = {
+        PhoneNumber: phoneNumber,
+        Message: reminder
+    }
+
+    // PublishCommand will create the command for sending SMS
+    const command = new PublishCommand(params)
+    const response = await snsClient.send(command)
+
+    return response.MessageId
 }
