@@ -20,7 +20,7 @@ export const handler = async (event: APIGatewayProxyEvent) => {
         }
 
         // TODO: Implementation of dynamo.query() function
-        const data = await dynamo.query({ tableName, index: 'index', pkValue: userId })
+        const data = await dynamo.query({ tableName, index: 'index1', pkValue: userId })
 
         return formatJSONResponse({
             data,

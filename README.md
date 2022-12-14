@@ -26,11 +26,37 @@ Depending on your preferred package manager, follow the instructions below to de
 
 ## Test your service
 
-This template contain two lambda functions triggered by an HTTP request made on the provisioned API Gateway REST API `/` route with `POST` and `/{code}` route with `GET` methods. The body structure is tested by API Gateway against `src/functions/setUrl/index.ts` and `src/functions/getUrl/index.ts`.
+This template contain three lambda functions two of them are triggered by an HTTP request made on the provisioned API Gateway REST API `/` route with `POST` and `/{userId}` route with `GET` methods. And the third lambda function is triggered by the dynamodb stream on the `REMOVE` event. The body structure is tested by API Gateway against the following:
+1. `src/functions/setReminder/index.ts`
+2. `src/functions/getReminder/index.ts`
+3. `src/functions/sendReminder/index.ts`
 
-- valid paths for API are `/` with `POST` method with HTTP status code of `200` and `/{code}` with `GET` method with HTTP status code of `301`
-- sending a `POST` request to `/` with a body **not** containing a string property named `url` will result in API Gateway returning a `502` HTTP error code
-- sending a `GET` request to `/{code}` with a payload containing a string property will result in API Gateway returning a `301` HTTP status code
+Valid paths for API are `/` with `POST` method with HTTP status code of `200` and `/{userId}` with `GET` method with HTTP status code of `200`
+ - The `/` route with `POST` method requires data in the body in a **JSON** format. 
+    - The required params are `reminder` and `reminderDate` of type string and number respectively.
+    - Third param can either be `phoneNumber` or `email` of string. Country code is required before number.
+    ```
+    {
+        "phoneNumber": "+920000000000",
+        "reminder": "Buy course from Udemy",
+        "reminderDate": 1671049600000
+    }
+    ```
+    **OR**
+    ```
+    {
+        "phoneNumber": "youremail@gmail.com",
+        "reminder": "Buy course from Udemy",
+        "reminderDate": 1671049600000
+    }
+    ```
+    - To convert the time into number use following JS method as an example
+    
+         `new Date('15 Dec 2022 01:25:00').getTime()`
+         
+         Outputs: `1671049500000` which needs to be entered in `reminderDate`
+    - Be sure to convert your local time to the time where the resources are deployed. For example: To trigger reminder in **Pakistan** at `25 Dec 2022 11:45:00`, and resources are deployed in **us-east-1** then in the `Date()` method we need to add converted time `25 Dec 2022 01:45:00`.
+- The `/{userId}` route with a `GET` method requires the `userId` which can be a `phoneNumber` or `email` entered when setting reminder.
 
 > :warning: As is, this template, once deployed, opens a **public** endpoint within your AWS account resources. Anybody with the URL can actively execute the API Gateway endpoint and the corresponding lambda. You should protect this endpoint with the authentication method of your choice.
 
@@ -45,10 +71,12 @@ The project code base is mainly located within the `src` folder. This folder is 
 .
 ├── src
 │   ├── functions               # Lambda configuration and source code folder
-│   │   ├── setUrl
-│   │   │   └── index.ts        # Export of handler for setUrl lambda function
-│   │   └── getUrl
-│   │       └── index.ts        # Export of handler for getUrl lambda function
+│   │   ├── getReminder
+│   │   │   └── index.ts        # Export of handler for getReminder lambda function
+│   │   ├── sendReminder
+│   │   │   └── index.ts        # Export of handler for sendReminder lambda function
+│   │   └── setReminder
+│   │       └── index.ts        # Export of handler for setReminder lambda function
 │   └── libs                    
 │       ├── apiGateway.ts       # API Gateway specific helper functions
 |       └── dynamo.ts           # Methods for interacting with dynaomo db 
