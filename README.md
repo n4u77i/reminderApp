@@ -45,7 +45,7 @@ Valid paths for API are `/` with `POST` method with HTTP status code of `200` an
     **OR**
     ```
     {
-        "phoneNumber": "youremail@gmail.com",
+        "email": "youremail@gmail.com",
         "reminder": "Buy course from Udemy",
         "reminderDate": 1671049600000
     }
